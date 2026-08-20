@@ -38,7 +38,7 @@
         <div class="eyebrow"><span class="dot"></span> Full-stack data + decision support</div>
         <h1>Turning fragmented market data into an <span>explainable recovery decision.</span></h1>
         <p class="hero-lede">
-          A portfolio showcase of an internal ISP market-intelligence platform that unifies subscriber history,
+          A portfolio showcase of a telecommunications market-intelligence platform that unifies subscriber history,
           sales activity, disconnect behavior, market identity, lifecycle rules, and recovery-project state into one
           repeatable analytical workflow.
         </p>
@@ -80,16 +80,16 @@
           </div>
         </div>
         <div class="hero-kpis">
-          <div><span>9</span><small>recovery signals</small></div>
-          <div><span>4</span><small>trend windows</small></div>
+          <div><span>6</span><small>public signal families</small></div>
+          <div><span>3</span><small>decision boundaries</small></div>
           <div><span>1</span><small>canonical score source</small></div>
         </div>
         <div class="code-window" aria-label="Illustrative recommendation logic">
           <div><span class="code-key">candidate</span> =</div>
-          <div class="indent"><span class="code-var">scoreEligible</span></div>
-          <div class="indent">&& <span class="code-var">projectEligible</span></div>
-          <div class="indent">&& !<span class="code-var">completionCooldown</span></div>
-          <div class="indent">&& <span class="code-var">priority</span> ≥ <span class="code-num">actionThreshold</span></div>
+          <div class="indent"><span class="code-var">scoreUsable</span></div>
+          <div class="indent">&& <span class="code-var">lifecycleActive</span></div>
+          <div class="indent">&& !<span class="code-var">conflictingWork</span></div>
+          <div class="indent">&& <span class="code-var">policyAllowsAction</span></div>
         </div>
       </div>
     </section>
@@ -104,7 +104,7 @@
         <article class="feature-card reveal">
           <div class="card-number">01</div>
           <h3>Fragmented operational evidence</h3>
-          <p>Sales, disconnects, franchise subscriber snapshots, and market subscriber history must be normalized before they can support one decision.</p>
+          <p>Acquisition events, churn events, and subscriber snapshots must be normalized before they can support one decision.</p>
           <div class="mini-tags"><span>CSV</span><span>XLSX</span><span>Historical snapshots</span></div>
         </article>
         <article class="feature-card reveal delay-1">
@@ -116,7 +116,7 @@
         <article class="feature-card reveal delay-2">
           <div class="card-number">03</div>
           <h3>Severity alone is not actionability</h3>
-          <p>A distressed market can still be blocked by incomplete history, active recovery work, lifecycle state, or a completion cooldown. Scoring and eligibility stay separate.</p>
+          <p>A distressed market can still be blocked by incomplete evidence, active recovery work, lifecycle state, or a review hold. Scoring and eligibility stay separate.</p>
           <div class="mini-tags"><span>Score</span><span>Eligibility</span><span>Lifecycle</span></div>
         </article>
       </div>
@@ -126,16 +126,16 @@
       <div class="section-heading reveal">
         <div class="eyebrow">System architecture</div>
         <h2>A controlled path from <span>raw events to measured outcomes.</span></h2>
-        <p>The production system separates ingestion, identity, metrics, scoring, recommendation, and recovery-project measurement instead of collapsing them into one dashboard query.</p>
+        <p>The reference architecture separates ingestion, identity, metrics, scoring, recommendation, and recovery-project measurement instead of collapsing them into one dashboard query.</p>
       </div>
       <div class="diagram-card reveal">
         <img src="assets/architecture.svg" alt="Architecture diagram showing source reports flowing through parsing, canonical market resolution, metrics, recovery scoring, recommendation, investigation, and recovery projects." />
       </div>
       <div class="architecture-notes">
         <div class="architecture-note reveal"><span>01</span><div><strong>Normalize first</strong><p>Raw reports become typed events and snapshots before analytical use.</p></div></div>
-        <div class="architecture-note reveal delay-1"><span>02</span><div><strong>Resolve identity</strong><p>Franchise and source-market records map into a canonical market layer.</p></div></div>
+        <div class="architecture-note reveal delay-1"><span>02</span><div><strong>Resolve identity</strong><p>Source-entity and source-market records map into a canonical market layer.</p></div></div>
         <div class="architecture-note reveal delay-2"><span>03</span><div><strong>Derive once</strong><p>Canonical metrics and health signals feed a single recovery-score universe.</p></div></div>
-        <div class="architecture-note reveal"><span>04</span><div><strong>Gate action</strong><p>Data quality, lifecycle, project state, and cooldown determine actionability.</p></div></div>
+        <div class="architecture-note reveal"><span>04</span><div><strong>Gate action</strong><p>Data quality, lifecycle, project state, and review holds determine actionability.</p></div></div>
       </div>
     </section>
 
@@ -183,8 +183,8 @@
 
             <div class="app-toolbar">
               <div class="app-title-group">
-                <div class="breadcrumbs">Markets <span>/</span> <b id="crumbMarket">Pine Valley, PA</b></div>
-                <h3 id="marketTitle">Pine Valley, PA</h3>
+                <div class="breadcrumbs">Markets <span>/</span> <b id="crumbMarket">Northstar Region, PA</b></div>
+                <h3 id="marketTitle">Northstar Region, PA</h3>
                 <p>Recovery signals, recommendation context, and market-level evidence.</p>
               </div>
               <div class="toolbar-actions">
@@ -202,12 +202,12 @@
               <article class="kpi-card">
                 <div class="kpi-top"><div class="kpi-label">Current subscribers</div><span class="kpi-symbol">◉</span></div>
                 <div class="kpi-value" id="subscriberValue">4,218</div>
-                <div class="kpi-foot"><strong id="change52" class="negative">−16.8%</strong><span>52-week change</span></div>
+                <div class="kpi-foot"><strong id="longChange" class="negative">−16.8%</strong><span>long-horizon change</span></div>
               </article>
               <article class="kpi-card">
-                <div class="kpi-top"><div class="kpi-label">30-day net acquisition</div><span class="kpi-symbol">±</span></div>
-                <div class="kpi-value" id="net30Value">−38</div>
-                <div class="kpi-foot"><span id="sales30">71 sales</span><span class="kpi-separator">•</span><span id="disconnect30">109 disconnects</span></div>
+                <div class="kpi-top"><div class="kpi-label">Recent net acquisition</div><span class="kpi-symbol">±</span></div>
+                <div class="kpi-value" id="recentNetValue">−38</div>
+                <div class="kpi-foot"><span id="recentSales">71 sales</span><span class="kpi-separator">•</span><span id="recentChurn">109 disconnects</span></div>
               </article>
               <article class="kpi-card">
                 <div class="kpi-top"><div class="kpi-label">Recoverable churn</div><span class="kpi-symbol">◎</span></div>
@@ -219,8 +219,8 @@
             <div class="analysis-grid primary-analysis-grid">
               <article class="panel trend-panel">
                 <div class="panel-head">
-                  <div><small>SUBSCRIBER TREND</small><h4>52-week trajectory</h4></div>
-                  <div class="window-pills" aria-label="Trend windows"><span>4W</span><span>13W</span><span>26W</span><span class="active">52W</span></div>
+                  <div><small>SUBSCRIBER TREND</small><h4>Multi-horizon trajectory</h4></div>
+                  <div class="window-pills" aria-label="Trend horizons"><span>Short</span><span>Medium</span><span>Long</span><span class="active">Extended</span></div>
                 </div>
                 <div class="chart-wrap">
                   <svg id="trendChart" viewBox="0 0 720 240" role="img" aria-label="Synthetic subscriber trend chart"></svg>
@@ -241,13 +241,13 @@
 
             <div class="analysis-grid lower-grid">
               <article class="panel signal-panel">
-                <div class="panel-head"><div><small>CHURN SIGNALS</small><h4>90-day disconnect drivers</h4></div><span class="muted-meta">synthetic %</span></div>
+                <div class="panel-head"><div><small>CHURN SIGNALS</small><h4>Recent churn drivers</h4></div><span class="muted-meta">synthetic %</span></div>
                 <div class="bar-list" id="churnBars"></div>
               </article>
               <article class="panel signal-panel">
                 <div class="panel-head"><div><small>RECOVERY MODEL</small><h4>Signal intensity</h4></div><span class="muted-meta">public demo</span></div>
                 <div class="score-list" id="scoreBars"></div>
-                <p class="model-note">Production weights and business-specific cutoffs are intentionally omitted from the public showcase.</p>
+                <p class="model-note">Private implementation weights and action cutoffs are intentionally omitted from the public showcase.</p>
               </article>
             </div>
           </div>
@@ -268,18 +268,18 @@
       <div class="code-callout reveal">
         <div class="code-callout-copy">
           <div class="eyebrow">Canonical source of truth</div>
-          <h3><code>canonical_market_recovery_scores</code></h3>
+          <h3><code>recovery_score_view</code></h3>
           <p>Current recovery scoring is intentionally centralized. Pages can classify, rank, and present the canonical score universe, but they do not invent independent score formulas.</p>
         </div>
         <div class="terminal-card">
           <div class="terminal-header">data-flow.ts <span>● ● ●</span></div>
           <pre><code><span class="code-muted">raw events</span>
      ↓
-<span class="code-var">canonical_market_metrics</span>
+<span class="code-var">market_metrics_view</span>
      ↓
-<span class="code-var">canonical_market_health_signals</span>
+<span class="code-var">health_signal_view</span>
      ↓
-<span class="code-key">canonical_market_recovery_scores</span>
+<span class="code-key">recovery_score_view</span>
      ↓
 <span class="code-muted">eligibility + recommendation + UI</span></code></pre>
         </div>
@@ -290,23 +290,20 @@
       <div class="section-shell">
         <div class="section-heading reveal">
           <div class="eyebrow">Recovery model</div>
-          <h2>Nine signals. <span>Coverage-aware scoring.</span></h2>
-          <p>The model combines long- and short-term decline, acquisition performance, churn composition, absolute loss, and recoverable opportunity. Missing history is not silently treated as healthy.</p>
+          <h2>Signal families with <span>coverage-aware scoring.</span></h2>
+          <p>The public model groups trajectory, momentum, acquisition balance, churn pressure, absolute impact, and recoverability. Missing evidence is not silently treated as healthy.</p>
         </div>
         <div class="signal-grid reveal">
-          <div class="signal-card"><span>01</span><strong>Long-term decline</strong><small>52-week direction</small></div>
-          <div class="signal-card"><span>02</span><strong>Short-term decline</strong><small>13-week direction</small></div>
-          <div class="signal-card"><span>03</span><strong>Trend acceleration</strong><small>Worsening vs. improving</small></div>
-          <div class="signal-card"><span>04</span><strong>Acquisition deficit</strong><small>Sales vs. disconnects</small></div>
-          <div class="signal-card"><span>05</span><strong>Competitive churn</strong><small>Recoverable pressure</small></div>
-          <div class="signal-card"><span>06</span><strong>Service churn</strong><small>Experience pressure</small></div>
-          <div class="signal-card"><span>07</span><strong>Price / product</strong><small>Offer-fit pressure</small></div>
-          <div class="signal-card"><span>08</span><strong>Absolute loss</strong><small>Scale of decline</small></div>
-          <div class="signal-card"><span>09</span><strong>Recovery opportunity</strong><small>Potentially recoverable churn</small></div>
+          <div class="signal-card"><span>01</span><strong>Trajectory</strong><small>Long-horizon direction</small></div>
+          <div class="signal-card"><span>02</span><strong>Momentum</strong><small>Improving vs. worsening</small></div>
+          <div class="signal-card"><span>03</span><strong>Acquisition balance</strong><small>Adds vs. losses</small></div>
+          <div class="signal-card"><span>04</span><strong>Churn pressure</strong><small>Recoverable driver mix</small></div>
+          <div class="signal-card"><span>05</span><strong>Absolute impact</strong><small>Scale of movement</small></div>
+          <div class="signal-card"><span>06</span><strong>Recoverability</strong><small>Actionable opportunity</small></div>
         </div>
         <div class="principle-grid">
           <article class="principle-card reveal"><div class="principle-icon">Σ</div><h3>Coverage-aware</h3><p>Composite scoring normalizes across valid inputs and tracks completeness separately.</p></article>
-          <article class="principle-card reveal delay-1"><div class="principle-icon">≠</div><h3>Score ≠ eligibility</h3><p>A high recovery score does not bypass active-project, cooldown, lifecycle, or data-quality controls.</p></article>
+          <article class="principle-card reveal delay-1"><div class="principle-icon">≠</div><h3>Score ≠ eligibility</h3><p>A high recovery score does not bypass active-work, lifecycle, review-hold, or data-quality controls.</p></article>
           <article class="principle-card reveal delay-2"><div class="principle-icon">△</div><h3>Diagnostics stay diagnostic</h3><p>Subscriber-source reconciliation can warn operators without becoming an unintended hard gate.</p></article>
           <article class="principle-card reveal"><div class="principle-icon">↻</div><h3>Lifecycle-aware</h3><p>New markets, limited-history markets, and no-longer-served markets are handled explicitly.</p></article>
         </div>
@@ -319,7 +316,7 @@
         <h2>Architecture choices designed for <span>explainability and auditability.</span></h2>
       </div>
       <div class="decision-grid">
-        <article class="decision-card reveal"><div class="decision-label">IDENTITY</div><h3>Canonical markets</h3><p>Source-market and franchise records resolve into canonical market identities before aggregation.</p><div class="decision-rule">Never compare mismatched geography as if it were one market.</div></article>
+        <article class="decision-card reveal"><div class="decision-label">IDENTITY</div><h3>Canonical markets</h3><p>Source-market and source-entity records resolve into canonical market identities before aggregation.</p><div class="decision-rule">Never compare mismatched geography as if it were one market.</div></article>
         <article class="decision-card reveal delay-1"><div class="decision-label">HISTORY</div><h3>Frozen recovery baselines</h3><p>Recovery-project baselines preserve historical truth. Legitimate corrections create a rebaseline rather than rewriting the original snapshot.</p><div class="decision-rule">Historical measurement is append-oriented, not destructive.</div></article>
         <article class="decision-card reveal delay-2"><div class="decision-label">QUALITY</div><h3>Missing data is explicit</h3><p>Incomplete historical coverage is surfaced and handled through narrow rules instead of being interpreted as good performance.</p><div class="decision-rule">Unknown is not the same as healthy.</div></article>
         <article class="decision-card reveal"><div class="decision-label">MAPPING</div><h3>Human-reviewed ambiguity</h3><p>Non-exact market mappings remain reviewable rather than being silently forced into a canonical identity.</p><div class="decision-rule">Automate exactness; review ambiguity.</div></article>
@@ -370,7 +367,7 @@
               <div class="perf-node-grid">
                 <span>Canonical score read</span>
                 <span>Project eligibility</span>
-                <span>Cooldown state</span>
+                <span>Review-hold state</span>
                 <span>Application ranking</span>
               </div>
             </div>
@@ -475,7 +472,7 @@
 
   <footer class="footer">
     <div><strong>Market Recovery Intelligence</strong><span>Technical portfolio showcase</span></div>
-    <p>Built as a sanitized case study of a production-oriented market analytics and recovery-management system.</p>
+    <p>Built as a sanitized case study of a production-scale market analytics and recovery-management design.</p>
   </footer>
 
   <script src="script.js"></script>
