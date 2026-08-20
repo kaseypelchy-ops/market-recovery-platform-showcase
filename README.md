@@ -4,113 +4,189 @@
 
 **Public technical case study for a full-stack market recovery decision-support platform.**
 
-[Live interactive demo](https://kaseypelchy-ops.github.io/market-recovery-platform-showcase/)
+[View the live interactive demo](https://kaseypelchy-ops.github.io/market-recovery-platform-showcase/)
 
-> This repository is a sanitized reconstruction. All market names, metrics, examples, identifiers, and code samples are synthetic or public abstractions. It contains no production data, credentials, customer records, or exact private scoring rules.
+> **Public-safe reconstruction:** all market names, metrics, examples, identifiers, and code samples in this repository are synthetic or intentionally abstracted. The repository does not contain production credentials, customer records, raw operational exports, or exact private scoring rules.
 
-## What the system does
+---
 
-The underlying system answers a sequence of operational questions:
+## Technical overview
 
-1. What changed in a market?
-2. Are the source records describing the same geographic entity?
-3. Is the change persistent or temporary?
-4. What signals are driving the decline?
-5. Is the market actionable now?
-6. What intervention should be prioritized?
-7. Did the intervention improve the market?
+The underlying application is a **Next.js / TypeScript decision-support system backed by PostgreSQL and Supabase**. It combines normalized operational events, subscriber history, canonical geographic identity, derived market-health metrics, coverage-aware scoring, policy-based eligibility, deterministic ranking, and recovery-project measurement.
 
-The design deliberately separates **evidence**, **identity**, **analytics**, **severity**, **eligibility**, and **measurement** so that one layer cannot silently redefine another.
+The public GitHub Pages site is deliberately lighter-weight: it is a static HTML/CSS/JavaScript reconstruction that demonstrates the product and engineering model without connecting to production infrastructure.
+
+| Area | Production architecture represented in this case study |
+|---|---|
+| Application | Next.js, React, TypeScript |
+| Data platform | PostgreSQL, Supabase |
+| Ingestion | CSV/XLSX parsing, schema validation, stable deduplication |
+| Modeling | normalized event tables, canonical identity, analytical views |
+| Analytics | rolling acquisition/churn, multi-horizon subscriber trends, signal derivation |
+| Decision support | normalized scoring, completeness metadata, eligibility policy, ranking |
+| Workflow | transactional project transitions and frozen measurement snapshots |
+| Performance | bounded scans, targeted indexes, shared read paths |
+| Validation | lint/build checks, browser regression, data-quality checks, migration discipline |
+
+---
+
+## System architecture
+
+The central design principle is that **evidence, identity, analytics, severity, actionability, and measurement are separate layers**.
 
 ```mermaid
 flowchart LR
-    A[Acquisition events] --> D[Ingestion + validation]
-    B[Churn events] --> D
-    C[Subscriber snapshots] --> D
+    subgraph Sources["Operational source data"]
+        A["Acquisition events"]
+        B["Churn events"]
+        C["Subscriber snapshots"]
+    end
 
-    D --> E[Normalized records]
-    E --> F[Canonical market identity]
-    F --> G[Derived market metrics]
-    G --> H[Health signals]
-    H --> I[Coverage-aware recovery score]
+    subgraph Ingestion["Ingestion + normalization"]
+        D["Schema validation"]
+        E["Field normalization"]
+        F["Stable dedupe keys"]
+    end
 
-    I --> J[Eligibility policy]
-    J --> K[Deterministic ranking]
-    K --> L[Market investigation]
-    L --> M[Recovery project]
-    M --> N[Frozen measurement snapshots]
+    subgraph Canonical["Canonical analytical model"]
+        G["Canonical market identity"]
+        H["Derived market metrics"]
+        I["Health signals"]
+        J["Coverage-aware score"]
+    end
+
+    subgraph Decision["Decision policy"]
+        K["Eligibility policy"]
+        L["Deterministic ranking"]
+        M["Market investigation"]
+    end
+
+    subgraph Measurement["Operational measurement"]
+        N["Recovery project"]
+        O["Frozen snapshots"]
+        P["Outcome comparison"]
+    end
+
+    A --> D
+    B --> D
+    C --> D
+    D --> E --> F --> G
+    G --> H --> I --> J
+    J --> K --> L --> M
+    M --> N --> O --> P
 ```
 
-## Technical scope
+The model intentionally avoids the common anti-pattern of putting ingestion rules, scoring logic, and workflow state into one dashboard query.
 
-This case study demonstrates patterns used across the application:
+---
 
-- **Next.js + TypeScript** for the application and server-rendered investigation workflow
-- **PostgreSQL / Supabase** for normalized data, analytical views, transactional writes, and access control
-- **CSV/XLSX ingestion** with structural validation and stable deduplication
-- **Canonical identity resolution** before analytics
-- **Multi-horizon trend analysis** and churn classification
-- **Coverage-aware weighted scoring** that does not treat missing data as healthy
-- **Eligibility as a separate policy layer** from analytical severity
-- **Deterministic recommendation ranking**
-- **Transactional project transitions** with write-time revalidation
-- **Immutable baseline snapshots** plus explicit rebaseline semantics
-- **Read-path optimization** for expensive analytical pages
-- **Shared domain/data modules** to prevent duplicated business logic
+## Core engineering invariants
 
-## Public reference architecture
+Several rules are treated as architectural invariants rather than UI behavior.
 
-The public repository uses neutral aliases rather than production schema names.
+### 1. Canonical identity comes before analytics
 
-| Layer | Public abstraction | Responsibility |
-|---|---|---|
-| Ingestion | `ingestion_service` | Validate source shape, normalize fields, generate dedupe keys |
-| Evidence | `acquisition_events`, `churn_events`, `subscriber_snapshots` | Durable normalized source evidence |
-| Identity | `market_identity` | Resolve source geography into one canonical analytical entity |
-| Metrics | `market_metrics_view` | Aggregate activity, trends, churn mix, penetration context |
-| Signals | `health_signal_view` | Convert metrics into comparable analytical signals |
-| Scoring | `recovery_score_view` | Produce severity plus data-completeness metadata |
-| Policy | `eligibility_policy` | Apply lifecycle, data-quality, and active-work constraints |
-| Ranking | `recommendation_engine` | Sort eligible markets deterministically |
-| Workflow | `recovery_projects` | Track selected interventions and state transitions |
-| Measurement | `project_snapshots` | Freeze baseline, review, and outcome states |
+Raw source systems can refer to the same geography differently. Metrics are therefore calculated only after source records have been resolved to a canonical analytical entity.
 
-## Example: coverage-aware scoring
+```text
+raw source labels
+      ↓
+identity resolution
+      ↓
+canonical market
+      ↓
+metrics / signals / scoring
+```
 
-The public example keeps weights and cutoffs configurable rather than reproducing private values.
+This prevents data from being grouped together merely because names look similar.
+
+### 2. Missing evidence is not healthy evidence
+
+A missing signal does not contribute a zero to the score. Instead, the score is normalized over the weight that is actually available.
+
+For available signals \(i\):
+
+```text
+normalized_score
+    = Σ(signal_i × weight_i)
+      ──────────────────────
+        Σ(available_weight_i)
+```
+
+Completeness is tracked independently:
+
+```text
+completeness
+    = available_weight
+      ────────────────
+        total_weight
+```
+
+That separation allows the application to answer two different questions:
+
+- **How severe does the available evidence look?**
+- **How complete is the evidence behind that conclusion?**
+
+Representative TypeScript:
 
 ```ts
-type WeightedSignal = {
+export type WeightedSignal = {
   value: number | null;
   weight: number;
 };
 
-function normalizedWeightedScore(signals: WeightedSignal[]) {
-  const available = signals.filter((signal) => signal.value !== null);
+export function calculateNormalizedScore(signals: WeightedSignal[]) {
+  const available = signals.filter(
+    (signal): signal is WeightedSignal & { value: number } =>
+      signal.value !== null,
+  );
 
   const availableWeight = available.reduce(
     (sum, signal) => sum + signal.weight,
     0,
   );
 
-  if (availableWeight === 0) return null;
+  if (availableWeight === 0) {
+    return {
+      score: null,
+      availableWeight: 0,
+    };
+  }
 
   const weightedTotal = available.reduce(
-    (sum, signal) => sum + signal.value! * signal.weight,
+    (sum, signal) => sum + signal.value * signal.weight,
     0,
   );
 
-  return weightedTotal / availableWeight;
+  return {
+    score: weightedTotal / availableWeight,
+    availableWeight,
+  };
 }
 ```
 
-The important design property is the denominator: **unavailable evidence is removed from available weight rather than silently contributing a zero severity score**.
+A fuller synthetic implementation is available in [`examples/scoring-engine.ts`](examples/scoring-engine.ts).
 
-See [`examples/scoring-engine.ts`](examples/scoring-engine.ts) for a fuller reference implementation.
+### 3. Severity and eligibility are separate domains
 
-## Example: severity is not eligibility
+A market may be analytically distressed and still be ineligible for a new intervention.
 
-A market can have a high analytical score and still be excluded from action:
+```mermaid
+flowchart TD
+    A["Recovery score"] --> B{"Score usable?"}
+    B -- No --> X["Investigate data quality"]
+    B -- Yes --> C{"Lifecycle allows action?"}
+    C -- No --> Y["Historical / inactive context only"]
+    C -- Yes --> D{"Conflicting work?"}
+    D -- Yes --> Z["Keep visible, exclude new action"]
+    D -- No --> E{"Policy gates passed?"}
+    E -- No --> W["Monitor / hold"]
+    E -- Yes --> F["Eligible recommendation candidate"]
+```
+
+This prevents a numerical score from silently becoming workflow authorization.
+
+Representative policy code:
 
 ```ts
 const eligible =
@@ -120,113 +196,327 @@ const eligible =
   !projectState.isInReviewHold;
 ```
 
-This prevents the recommendation layer from conflating *how distressed a market is* with *whether a new action is currently allowed*.
-
 See [`examples/recommendation-engine.ts`](examples/recommendation-engine.ts).
 
-## Performance engineering case study
+### 4. Historical measurement is immutable
 
-A key engineering issue was cold-page latency on analytical screens. The expensive path could evaluate overlapping derived logic multiple times during one request.
+When a recovery project starts, its baseline is frozen. Later changes to source mapping or coverage do not rewrite the historical baseline.
 
-### Failure pattern
+A corrected measurement universe creates a new comparison anchor rather than mutating the original record.
 
-```text
-page request
-  ├─ score read
-  ├─ classification read
-  ├─ recommendation read
-  └─ next-candidate read
-        ↓
-  overlapping analytical work
-        ↓
-  repeated scans / repeated derived calculations
+```mermaid
+stateDiagram-v2
+    [*] --> Selected
+    Selected --> Active
+    Active --> Monitoring
+    Monitoring --> Completed
+
+    Active --> Paused
+    Paused --> Active
+
+    Active --> Rebaseline: valid data-model correction
+    Monitoring --> Rebaseline: valid data-model correction
+    Rebaseline --> Monitoring
+
+    Completed --> [*]
 ```
 
-### Refactored path
+The state diagram is representative and intentionally abstracts production-specific workflow details.
 
-```text
-page request
-  ↓
-shared server-side loader
-  ├─ one canonical analytical read
-  ├─ lightweight project-state read
-  └─ lightweight lifecycle/data-quality read
-        ↓
-application-layer classification + ranking
-        ↓
-render
+---
+
+## Public reference data model
+
+The repository uses neutral public aliases rather than production object names.
+
+| Layer | Public abstraction | Responsibility |
+|---|---|---|
+| Ingestion | `ingestion_service` | validate source shape, normalize fields, create dedupe keys |
+| Evidence | `acquisition_events` | durable acquisition evidence |
+| Evidence | `churn_events` | durable churn evidence |
+| Evidence | `subscriber_snapshots` | point-in-time subscriber observations |
+| Identity | `market_identity` | canonical geographic identity |
+| Metrics | `market_metrics_view` | aggregate rolling activity and subscriber trends |
+| Signals | `health_signal_view` | transform metrics into comparable severity signals |
+| Scoring | `recovery_score_view` | calculate severity plus completeness metadata |
+| Policy | `eligibility_policy` | apply lifecycle, quality, and active-work constraints |
+| Ranking | `recommendation_engine` | rank only eligible candidates |
+| Workflow | `recovery_projects` | persist operational intervention state |
+| Measurement | `project_snapshots` | freeze baseline, review, and outcome observations |
+
+A visual version is available in [`assets/data-model.svg`](assets/data-model.svg).
+
+---
+
+## Data pipeline and idempotency
+
+The ingestion layer is designed so that a historical file can be uploaded again without duplicating analytical evidence.
+
+```mermaid
+sequenceDiagram
+    participant U as Upload
+    participant V as Validator
+    participant P as Parser
+    participant N as Normalizer
+    participant K as Key Builder
+    participant DB as PostgreSQL
+
+    U->>V: source file
+    V->>V: validate report signature
+    V->>P: accepted source
+    P->>N: parsed rows
+    N->>K: normalized event fields
+    K->>K: generate stable source-event key
+    K->>DB: upsert normalized evidence
+    DB-->>U: accepted / deduplicated result
 ```
 
-The optimization strategy was architectural rather than timeout-based:
+Key properties:
 
-- eliminate duplicate analytical reads
-- bound rolling event scans to the necessary analysis horizon
-- add indexes that match date/entity access patterns
-- centralize shared loaders
-- keep materialization/precomputation as the next scale step if cold reads become expensive again
+- structural validation happens before persistence
+- parsing and normalization are deterministic
+- dedupe identity is stable across re-uploads
+- source identity is retained separately from canonical market identity
+- ambiguous geographic matches can remain unresolved rather than being force-mapped
 
-See [`docs/PERFORMANCE_ENGINEERING.md`](docs/PERFORMANCE_ENGINEERING.md).
+See [`docs/DATA_PIPELINE.md`](docs/DATA_PIPELINE.md).
 
-## Repository deep dive
+---
 
-- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — domain boundaries and request/data flow
-- [`docs/DATA_PIPELINE.md`](docs/DATA_PIPELINE.md) — ingestion, normalization, idempotency, and identity resolution
-- [`docs/SCORING_AND_ELIGIBILITY.md`](docs/SCORING_AND_ELIGIBILITY.md) — score completeness, policy separation, and deterministic ranking
-- [`docs/PERFORMANCE_ENGINEERING.md`](docs/PERFORMANCE_ENGINEERING.md) — read-path failure mode and optimization strategy
-- [`docs/VALIDATION_STRATEGY.md`](docs/VALIDATION_STRATEGY.md) — contract, build, browser, and data-quality validation
-- [`docs/ENGINEERING_DECISIONS.md`](docs/ENGINEERING_DECISIONS.md) — ADR-style design decisions and tradeoffs
-- [`docs/PUBLIC_BOUNDARY.md`](docs/PUBLIC_BOUNDARY.md) — what is deliberately abstracted from the public case study
-- [`examples/`](examples/) — synthetic TypeScript and SQL reference patterns
+## Recommendation path
 
-## Interactive demo
+The recommendation engine is intentionally deterministic.
 
-The static GitHub Pages demo reconstructs a market investigation workspace using fictional scenarios. It demonstrates:
+At a high level:
 
-- recovery priority
+```text
+canonical metrics
+      ↓
+health signals
+      ↓
+coverage-aware severity score
+      ↓
+score usability
+      ↓
+lifecycle / project / policy gates
+      ↓
+eligible candidate set
+      ↓
+stable ranking
+      ↓
+recommended investigation target
+```
+
+A deterministic rank order matters because the same analytical state should produce the same recommendation regardless of page load, query order, or client state.
+
+---
+
+## Transactional project start
+
+Starting a recovery project is more than inserting a row. The transition needs to revalidate the candidate at write time and freeze its baseline atomically.
+
+```mermaid
+sequenceDiagram
+    participant UI as Application
+    participant API as Server action
+    participant SCORE as Score read
+    participant POLICY as Eligibility policy
+    participant TX as DB transaction
+    participant SNAP as Snapshot store
+
+    UI->>API: start project(candidate)
+    API->>SCORE: read current analytical state
+    SCORE-->>API: score + completeness
+    API->>POLICY: revalidate candidate
+    POLICY-->>API: eligible
+    API->>TX: begin
+    TX->>TX: create project
+    TX->>SNAP: freeze baseline
+    SNAP-->>TX: baseline persisted
+    TX-->>API: commit
+    API-->>UI: project started
+```
+
+The important property is **write-time revalidation**. A candidate that was eligible when the page loaded must still be eligible when the project is actually created.
+
+See [`examples/project-transition.sql`](examples/project-transition.sql).
+
+---
+
+## Performance engineering
+
+One of the most important engineering problems in the project was **cold analytical page latency**.
+
+### Original read pattern
+
+Multiple UI needs could independently request overlapping analytical objects:
+
+```mermaid
+flowchart TD
+    PAGE["Page request"] --> A["Score read"]
+    PAGE --> B["Classification read"]
+    PAGE --> C["Recommendation read"]
+    PAGE --> D["Next-candidate read"]
+
+    A --> E["Shared underlying analytical work"]
+    B --> E
+    C --> E
+    D --> E
+
+    E --> F["Repeated scans / repeated calculations"]
+    F --> G["Cold-request latency / timeout risk"]
+```
+
+### Refactored read path
+
+The application was moved toward one canonical heavy read plus lightweight state reads:
+
+```mermaid
+flowchart TD
+    PAGE["Page request"] --> LOADER["Shared server-side loader"]
+    LOADER --> SCORE["Canonical analytical read"]
+    LOADER --> STATE["Project state"]
+    LOADER --> LIFE["Lifecycle / quality state"]
+
+    SCORE --> DOMAIN["Shared domain logic"]
+    STATE --> DOMAIN
+    LIFE --> DOMAIN
+
+    DOMAIN --> CLASS["Classification"]
+    DOMAIN --> RANK["Eligibility + ranking"]
+    CLASS --> UI["Render"]
+    RANK --> UI
+```
+
+The strategy was architectural rather than timeout-based:
+
+- avoid repeated evaluation of the same analytical universe
+- bound rolling event reads to required time horizons
+- use indexes aligned with entity/date access patterns
+- centralize shared server-side loaders
+- keep materialized/precomputed scoring as a later scaling option if necessary
+
+A representative query pattern is in [`examples/read-path.sql`](examples/read-path.sql). The complete public discussion is in [`docs/PERFORMANCE_ENGINEERING.md`](docs/PERFORMANCE_ENGINEERING.md).
+
+---
+
+## Shared application boundary
+
+A second maintainability issue was duplicated domain logic inside large route files.
+
+The improved design separates route orchestration from domain/data logic:
+
+```text
+route / page
+    ↓
+shared market-recovery layer
+    ├── data loading
+    ├── numeric normalization
+    ├── classification
+    ├── recommendation policy
+    └── shared domain types
+    ↓
+presentation
+```
+
+This reduces the risk that the Dashboard and Market Investigation screens drift into separate implementations of the same rules.
+
+---
+
+## Validation strategy
+
+The system is validated at several levels instead of relying on one test type.
+
+| Layer | What is validated |
+|---|---|
+| Source contract | expected CSV/XLSX structure and report signature |
+| Parsing | normalized dates, identifiers, classifications, dedupe keys |
+| Persistence | idempotent writes and required constraints |
+| Analytics | known signal/score cases and missing-data behavior |
+| Policy | severity remains separate from action eligibility |
+| Database | migrations, targeted indexes, rollback path |
+| Application | TypeScript/build/lint correctness |
+| Browser | real navigation and interactive regression |
+| Public showcase | local asset paths, anchors, JS syntax, SVG validity |
+
+The public validation notes are documented in [`docs/VALIDATION_STRATEGY.md`](docs/VALIDATION_STRATEGY.md).
+
+---
+
+## Interactive Market Investigation demo
+
+The live site reconstructs the investigation experience using fictional market scenarios.
+
+It demonstrates:
+
 - subscriber trajectory
-- acquisition vs. churn
+- recent acquisition vs. churn
 - churn-driver composition
+- multi-horizon trend context
 - data completeness
+- normalized recovery signals
+- analytical severity
+- policy-based eligibility
 - recommendation context
-- lifecycle state
-- action eligibility
-- measurement workflow
+- lifecycle behavior
+- project measurement concepts
 
 No production API or database is called by the public demo.
 
-## Repository structure
+[Open the interactive demo](https://kaseypelchy-ops.github.io/market-recovery-platform-showcase/)
+
+---
+
+## Repository map
 
 ```text
 .
 ├── index.html
 ├── styles.css
 ├── script.js
+├── NOTICE.md
+├── README.md
+│
 ├── assets/
 │   ├── architecture.svg
 │   ├── data-model.svg
 │   ├── favicon.svg
 │   └── social-preview.png
+│
 ├── docs/
 │   ├── ARCHITECTURE.md
 │   ├── DATA_PIPELINE.md
-│   ├── SCORING_AND_ELIGIBILITY.md
-│   ├── PERFORMANCE_ENGINEERING.md
-│   ├── VALIDATION_STRATEGY.md
 │   ├── ENGINEERING_DECISIONS.md
-│   └── PUBLIC_BOUNDARY.md
-├── examples/
-│   ├── README.md
-│   ├── domain-model.ts
-│   ├── scoring-engine.ts
-│   ├── recommendation-engine.ts
-│   ├── read-path.sql
-│   └── project-transition.sql
-└── README.md
+│   ├── PERFORMANCE_ENGINEERING.md
+│   ├── PUBLIC_BOUNDARY.md
+│   ├── SCORING_AND_ELIGIBILITY.md
+│   └── VALIDATION_STRATEGY.md
+│
+└── examples/
+    ├── README.md
+    ├── domain-model.ts
+    ├── scoring-engine.ts
+    ├── recommendation-engine.ts
+    ├── read-path.sql
+    └── project-transition.sql
 ```
+
+### Technical deep dives
+
+- [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — domain boundaries and request/data flow
+- [`docs/DATA_PIPELINE.md`](docs/DATA_PIPELINE.md) — ingestion, normalization, idempotency, and identity resolution
+- [`docs/SCORING_AND_ELIGIBILITY.md`](docs/SCORING_AND_ELIGIBILITY.md) — completeness, severity, policy separation, and ranking
+- [`docs/PERFORMANCE_ENGINEERING.md`](docs/PERFORMANCE_ENGINEERING.md) — analytical read-path failure mode and optimization
+- [`docs/VALIDATION_STRATEGY.md`](docs/VALIDATION_STRATEGY.md) — contract, build, browser, and data-quality validation
+- [`docs/ENGINEERING_DECISIONS.md`](docs/ENGINEERING_DECISIONS.md) — ADR-style design decisions and tradeoffs
+- [`docs/PUBLIC_BOUNDARY.md`](docs/PUBLIC_BOUNDARY.md) — public abstraction/sanitization boundary
+- [`examples/`](examples/) — representative TypeScript and SQL patterns
+
+---
 
 ## Run locally
 
-The public showcase has no runtime dependencies.
+The portfolio site has no runtime dependencies or build step.
 
 ```bash
 python -m http.server 8080
@@ -238,19 +528,35 @@ Then open:
 http://localhost:8080
 ```
 
+The static site expects these local paths:
+
+```text
+assets/favicon.svg
+assets/architecture.svg
+assets/data-model.svg
+styles.css
+script.js
+```
+
 GitHub Pages publishes directly from the `main` branch root.
 
-## Disclosure boundary
+---
 
-The case study is intentionally representative rather than source-identical. It does **not** publish:
+## Public disclosure boundary
+
+This repository demonstrates system design without publishing source-identical production implementation.
+
+It does **not** include:
 
 - customer or employee data
-- real operational rankings
-- production credentials, URLs, or identifiers
-- raw source exports
-- exact private scoring weights or cutoffs
-- production object names
-- internal pricing, margin, or commercial-performance data
+- production credentials, URLs, or project identifiers
+- raw operational exports
+- real market rankings
+- exact private weights or cutoffs
+- production-only object names
+- confidential pricing, margin, or commercial-performance information
 - private operational notes
 
-Technical depth is demonstrated through neutral aliases, synthetic data, diagrams, and representative code patterns instead of production implementation details.
+The architecture, code samples, SQL examples, diagrams, and synthetic UI are designed to demonstrate the engineering approach while keeping production-specific details abstracted.
+
+See [`docs/PUBLIC_BOUNDARY.md`](docs/PUBLIC_BOUNDARY.md).
